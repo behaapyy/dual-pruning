@@ -86,6 +86,9 @@ def load_cifar100_sub(args, target_probs=None, score=None, data_mask=None):
     ])
     
     train_data = dset.CIFAR100(args.data_path, train=True, transform=train_transform, download=True)
+    z = [[train_data.targets[i], score[np.where(data_mask == i)]] for i in range(len(train_data.targets))]
+    train_data.targets = z
+    
     if args.sample == 'random':
         subset_mask = np.choice(50000, int(args.subset_rate* 50000), replace=False)
     elif args.sample == 'stratified':
@@ -106,10 +109,6 @@ def load_cifar100_sub(args, target_probs=None, score=None, data_mask=None):
     print(len(data_set))
     train_loader = torch.utils.data.DataLoader(data_set, batch_size=args.batch_size, shuffle=True,
                                                num_workers=args.workers, pin_memory=True)
-    if 'tdds' in args.mask_path:
-        score = np.load(args.score_path)
-        z = [[train_data.targets[i], score[np.where(data_mask == i)]] for i in range(len(train_data.targets))]
-        train_data.targets = z
 
     test_transform = transforms.Compose([
         transforms.ToTensor(),
