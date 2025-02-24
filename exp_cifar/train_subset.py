@@ -64,7 +64,7 @@ parser.add_argument('--c_d', type=float, default=4, help='d_c for beta sampling'
 parser.add_argument('--key_T', type=int, default=30, help='score computation epoch')
 parser.add_argument('--key_J', type=int, default=10, help='sliding window size')
 parser.add_argument('--sample', type=str, default=None, help='sampling method: random, stratified, beta')
-parser.add_argument('--method', type=str, default=None, help='methodology name')
+parser.add_argument('--method', type=str, default='dual', help='methodology name')
 
 args = parser.parse_args()
 args.use_cuda = True
@@ -111,13 +111,13 @@ def main(): #
         args.num_classes = 10
         args.num_samples = 50000 * args.subset_rate
         args.num_iter = math.ceil(args.num_samples/args.batch_size)
-        train_loader, test_loader = load_cifar10_sub(args, mask, score, target_probs)
+        train_loader, test_loader = load_cifar10_sub(args, target_probs, score, mask)
         
     elif args.dataset == 'cifar100':
         args.num_classes = 100
         args.num_samples = 50000 * args.subset_rate
         args.num_iter = math.ceil(args.num_samples/args.batch_size)
-        train_loader, test_loader = load_cifar100_sub(args, mask, score, target_probs)
+        train_loader, test_loader = load_cifar100_sub(args, target_probs, score, mask)
     else:
         raise NotImplementedError("Unsupported dataset type")
     
