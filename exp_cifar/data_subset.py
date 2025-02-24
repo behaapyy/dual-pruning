@@ -49,7 +49,7 @@ def load_cifar10_sub(args, target_probs=None, score=None, data_mask=None):
     elif args.sample == 'beta':
         subset_mask = beta_sampling(1-args.subset_rate, args.c_d, target_probs, data_mask, score)
     else:
-        subset_mask = data_mask[int(args.subset_rate * len(data_mask)):]
+        subset_mask = data_mask[-int(args.subset_rate * len(data_mask)):]
         
     data_set = torch.utils.data.Subset(train_data, subset_mask)
 
@@ -103,7 +103,7 @@ def load_cifar100_sub(args, target_probs=None, score=None, data_mask=None):
     elif args.sample == 'beta':
         subset_mask = beta_sampling(1-args.subset_rate, args.c_d, target_probs, data_mask, score)
     else:
-        subset_mask = data_mask[int(args.subset_rate * len(data_mask)):]
+        subset_mask = data_mask[-int(args.subset_rate * len(data_mask)):]
 
     data_set = torch.utils.data.Subset(train_data, subset_mask)
     print(len(data_set))
