@@ -62,8 +62,6 @@ def aum(rearranged, targets_expanded, target_probs):
         aum += margin
     score = aum
     mask = aum.sort()[1]
-    score = aum
-    mask = aum.sort()[1]
     return score, mask
 
 def entropy(rearranged):
