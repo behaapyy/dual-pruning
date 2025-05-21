@@ -51,17 +51,17 @@ def el2n(rearranged, targets):
     return score, mask
 
 def aum(rearranged, targets_expanded, target_probs):
-    for T in range(rearranged.shape[0]):
-        probs = rearranged[:T]
-        aum = torch.zeros(probs.shape[1])
-        for k in range(probs.shape[0]):
-            output = probs[k]
-            batch_idx = range(output.shape[0])
-            target_prob = output[batch_idx, targets]
-            output[batch_idx, targets] = 0
-            other_highest_prob = torch.max(output, dim=1)[0]
-            margin = target_prob - other_highest_prob
-            aum += margin
+    rearranged = F.softmax(rearranged, dim=2)
+    for T in range(rearranged.shape[0]): # iter 200
+        probs = rearranged[T]
+        aum = torch.zeros(probs.shape[0])
+        target_prob = probs[range(probs.size(0)), targets]
+        probs[range(probs.size(0)), targets] = 0
+        other_highest_prob = probs.max(dim=1)[0]
+        margin = target_prob - other_highest_prob
+        aum += margin
+    score = aum
+    mask = aum.sort()[1]
     score = aum
     mask = aum.sort()[1]
     return score, mask
