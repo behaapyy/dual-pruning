@@ -86,8 +86,6 @@ def load_cifar100_sub(args, target_probs=None, score=None, data_mask=None):
     ])
     
     train_data = dset.CIFAR100(args.data_path, train=True, transform=train_transform, download=True)
-    z = [[train_data.targets[i], score[np.where(data_mask == i)]] for i in range(len(train_data.targets))]
-    train_data.targets = z
     
     if args.sample == 'random':
         subset_mask = np.choice(50000, int(args.subset_rate* 50000), replace=False)
