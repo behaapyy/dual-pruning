@@ -215,9 +215,8 @@ def train(train_loader, args, model, criterion, optimizer, scheduler, epoch, log
     
     for t, (input, target) in enumerate(train_loader):
         if args.use_cuda:
-            y = target[0].to(args.device)
+            y = target.to(args.device)
             x = input.to(args.device)
-            s = target[1].to(args.device)
         
         input_var = torch.autograd.Variable(x)
         target_var = torch.autograd.Variable(y)
