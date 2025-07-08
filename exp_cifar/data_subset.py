@@ -34,7 +34,7 @@ def load_cifar10_sub(args, target_probs=None, score=None, data_mask=None):
     train_data = dset.CIFAR10(args.data_path, train=True, transform=train_transform, download=True)
 
     if args.sample == 'random':
-        subset_mask = np.choice(50000, int(args.subset_rate* 50000), replace=False)
+        subset_mask = np.random.choice(50000, int(args.subset_rate* 50000), replace=False)
     elif args.sample == 'stratified':
         mis_num = int(args.mis_ratio * 50000)
         easy_index = data_mask[:-mis_num]
@@ -86,7 +86,7 @@ def load_cifar100_sub(args, target_probs=None, score=None, data_mask=None):
     train_data = dset.CIFAR100(args.data_path, train=True, transform=train_transform, download=True)
     
     if args.sample == 'random':
-        subset_mask = np.choice(50000, int(args.subset_rate* 50000), replace=False)
+        subset_mask = np.random.choice(50000, int(args.subset_rate* 50000), replace=False)
     elif args.sample == 'stratified':
         mis_num = int(args.mis_ratio * 50000)
         easy_index = data_mask[:-mis_num]
