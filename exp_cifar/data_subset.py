@@ -45,7 +45,7 @@ def load_cifar10_sub(args, target_probs=None, score=None, data_mask=None):
         subset_mask = stratified_sampling(torch.tensor(score), int(args.subset_rate * 50000))
         
     elif args.sample == 'beta':
-        subset_mask = beta_sampling(1-args.subset_rate, args.c_d, target_probs, data_mask, score)
+        subset_mask = beta_sampling(1-args.subset_rate, args.c_d, target_probs, score, data_mask)[0]
     else:
         subset_mask = data_mask[-int(args.subset_rate * len(data_mask)):]
         
@@ -97,7 +97,7 @@ def load_cifar100_sub(args, target_probs=None, score=None, data_mask=None):
         subset_mask = stratified_sampling(torch.tensor(score), int(args.subset_rate * 50000))
         
     elif args.sample == 'beta':
-        subset_mask = beta_sampling(1-args.subset_rate, args.c_d, target_probs, data_mask, score)
+        subset_mask = beta_sampling(1-args.subset_rate, args.c_d, target_probs, score, data_mask)[0]
     else:
         subset_mask = data_mask[-int(args.subset_rate * len(data_mask)):]
 
@@ -183,7 +183,7 @@ def beta_sampling(prune_rate, c_d, target_probs, score, mask):
     subset_n = int((1-prune_rate) * data_length)
     anchor_mean = pred_mean[mask[-10:]].mean()
     y_b = 15 * (1-anchor_mean) * (1 -prune_rate ** c_d)
-    y_a = 16 - y_b
+    y_a = 15 - y_b
     
     pdf_y = beta.pdf(pred_mean, y_a, y_b)
     joint_p = pdf_y * score
