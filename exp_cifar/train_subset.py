@@ -57,9 +57,9 @@ parser.add_argument('--manualSeed', type=int, default=None, help='manual seed')
 parser.add_argument('--src-folder', help='train dynamics source')
 
 # Coreset Method
-parser.add_argument('--target-probs-path', default='./generated/cifar10/42/target_probs_win_10_ep200.npy', type=str, help='for dual + beta')
-parser.add_argument('--score-path', default='./generated/cifar10/42/dual_mask_T30.npy', type=str)
-parser.add_argument('--mask-path', default='./generated/cifar10/42/dual_mask_T30.npy', type=str)
+parser.add_argument('--target-probs-path', default='', type=str, help='for dual + beta')
+parser.add_argument('--score-path', default='', type=str)
+parser.add_argument('--mask-path', default='', type=str)
 parser.add_argument('--c_d', type=float, default=4, help='d_c for beta sampling')
 parser.add_argument('--key_T', type=int, default=30, help='score computation epoch')
 parser.add_argument('--key_J', type=int, default=10, help='sliding window size')
