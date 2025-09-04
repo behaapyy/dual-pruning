@@ -8,7 +8,7 @@
 This step is necessary to collect training dynamics for future coreset selection. DUAL only collects training dynamics during early 60 epochs.
 
 ```javascript
-python train_imagenet.py --epochs 60 --lr 0.1 --scheduler cosine --task-name ImageNet --base-dir /path/to/work-dir/imagenet/ --data-dir /dir/to/data/imagenet --network resnet34 --batch-size 256 --gpuid 0,1
+python train_imagenet.py --epochs 60 --lr 0.1 --scheduler cosine --task-name imagenet --base-dir /path/to/work-dir/imagenet/ --data-dir /dir/to/data/imagenet --network resnet34 --batch-size 256 --gpuid 0,1
 ```
 
 ## Sample Importance Evaluation
@@ -22,7 +22,7 @@ After the computation, you will obtain two .npy files (XXX_score.npy, XXX_mask.n
 
 Calculate other baseline scores for each image
 ```javascript
-python generate_importance_score_imagenet.py --data-dir /dir/to/data/imagenet --base-dir /path/to/work-dir/imagenet/ --task-name ImageNet-Score --data-score-path ./imagenet-data-score.pt
+python generate_importance_score_imagenet.py --data-dir /dir/to/data/imagenet --base-dir /path/to/work-dir/imagenet/ --task-name imagenet --data-score-path ./imagenet-data-score.pt
 ```
 
 *For an imagenet experience, we don't set a smaller batch size for aggressive pruning. 
