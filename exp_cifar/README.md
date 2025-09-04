@@ -14,9 +14,9 @@ python train.py \
     --dataset cifar100 \
     --arch resnet18 \
     --epochs 200 \
-    --learning_rate 0.1 \
+    --learning-rate 0.1 \
     --batch-size 128 \
-    --maunalSeed 42 \
+    --manualSeed 42 \
     --dynamics \
     --save_path ./checkpoint
 ```
