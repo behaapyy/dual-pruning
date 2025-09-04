@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser()
 
 ######################### Data Setting #########################
 parser.add_argument('--td-path', type=str, default='', help='The dir path of the training dynamics saved')
-parser.add_argument('--task-name', type=str)
+parser.add_argument('--save-path', type=str, default='', help='The save path of score and mask files')
 
 args = parser.parse_args()
 
@@ -106,13 +106,13 @@ for i in range(idxs.shape[0]): # epoch
 rearranged = torch.stack(probs_rearranged)
 
 score, mask = dynunc(rearranged, window_size=10, dim=0)
-np.save('', score) # please fill the path for saving score and mask
-np.save('', mask)
+np.save(os.path.join(args.save_path, 'dynunc_score'), score)
+np.save(os.path.join(args.save_path, 'dynunc_mask'), mask)
 
 score, mask = dual(rearranged)
-np.save('', score)
-np.save('', mask)
+np.save(os.path.join(args.save_path, 'dual_score'), score)
+np.save(os.path.join(args.save_path, 'dual_mask'), mask)
 
 score, mask = tdds(70, 10, rearranged)
-np.save('', score)
-np.save('', mask)
+np.save(os.path.join(args.save_path, 'tdds_score'), score)
+np.save(os.path.join(args.save_path, 'tdds_mask'), mask)
