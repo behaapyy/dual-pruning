@@ -49,7 +49,7 @@ This command generates two .npy files for each method:
 
 Now you can train a model using the pruned dataset that you created in the previous step. The `--subset_rate` parameter determines the percentage of data to keep. For example, a value of 0.3 keeps 30% of the dataset.
 
-Use the following command, making sure to update the file paths (`--score-path`, `--mask-path`, and `target-probs-path`) to the files generated in Step 2.
+Use the following command, making sure to update the file paths (`--score-path`, `--mask-path`, and `--target-probs-path`) to the files generated in Step 2.
 
 ```
 python train_subset.py \
