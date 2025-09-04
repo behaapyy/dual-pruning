@@ -11,6 +11,13 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from collections import defaultdict
 
+parser = argparse.ArgumentParser()
+
+######################### Data Setting #########################
+parser.add_argument('--td-path', type=str, default='', help='The dir path of the training dynamics saved')
+parser.add_argument('--task-name', type=str)
+
+args = parser.parse_args()
 
 def dynunc(preds, window_size=10, dim=0):
     windows_score = []
@@ -60,10 +67,8 @@ def dual(preds, window_size=10, dim=0):
     mask = np.argsort(score)
     return score, mask
 
-td_dir = "./data-model/imagenet/None_None_None/training-dynamics"
-total_result = {}
 
-for i, filename in enumerate(os.listdir(td_dir)):
+for i, filename in enumerate(os.listdir(args.td_path)):
     td_path = os.path.join(td_dir, filename)
     with open(td_path, 'rb') as f:
         td_data = pickle.load(f)
