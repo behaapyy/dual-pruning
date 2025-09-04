@@ -4,7 +4,7 @@
 - **`exp_cifar`** for CIFAR (10, 100) experiments  
 
 ---
-# Step 1: Collect Training Dynamics
+## Step 1: Collect Training Dynamics
 
 This step is necessary to collect the training dynamics for subsequential coreset selection. DUAL only collects training dynamics during early 30 epochs.
 
