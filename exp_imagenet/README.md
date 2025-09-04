@@ -18,14 +18,14 @@ Calculate DUAL, Dyn-Unc, TDDS score for each image
 ```javascript
 python generate_importance_score_imagenet_dual.py --td-path /dir/to/td --save-path /path/to/save-dir
 ```
+After the computation, you will obtain two .npy files (XXX_score.npy, XXX_mask.npy) storing scores ordered by sample indexes and sorted sample indexes by respective importance scores.
+
 Calculate other baseline scores for each image
 ```javascript
 python generate_importance_score_imagenet.py --data-dir /dir/to/data/imagenet --base-dir /path/to/work-dir/imagenet/ --task-name ImageNet-Score --data-score-path ./imagenet-data-score.pt
 ```
 
-After the computation, you will obtain two .npy files (XXX_score.npy, XXX_mask.npy) storing scores ordered by sample indexes and sorted sample indexes by respective importance scores.
-
-*For an aggressive pruning rate, setting a smaller batch size will lead to better performance. We use batch size of 64 for 80% pruning, and 32 for 90% pruning.
+*For an imagenet experience, we don't set a smaller batch size for aggressive pruning. 
 
 ## Train Classifiers on the Pruned Dataset
 #### DUAL
