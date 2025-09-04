@@ -33,8 +33,8 @@ Run the following command, specifying the path to your saved dynamics and where 
 
 ```
 python importance_evaluation.py \
-  --dynamics_path ./checkpoint/cifar100/42/npy/ \
-  --mask_path ./checkpoint/cifar100/42/generated_mask/
+    --dynamics_path ./checkpoint/cifar100/42/npy/ \
+    --mask_path ./checkpoint/cifar100/42/generated_mask/
 ```
 This command generates two .npy files for each method:
 
@@ -53,20 +53,20 @@ Use the following command, making sure to update the file paths (`--score-path`,
 
 ```
 python train_subset.py \
-  --data_path ./data \
-  --dataset cifar100 \
-  --arch resnet18 \
-  --epochs 200 \
-  --learning_rate 0.1 \
-  --batch-size 128 \
-  --save_path ./checkpoint/pruned-dataset/cifar100/42 \
-  --subset_rate 0.3  \
-  --target-probs-path ./checkpoint/cifar100/42/generated_mask/target_probs_win_10_ep200.npy \
-  --score-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
-  --mask-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
-  --c_d 4 \
-  --sample beta \
-  --method dual
+    --data_path ./data \
+    --dataset cifar100 \
+    --arch resnet18 \
+    --epochs 200 \
+    --learning_rate 0.1 \
+    --batch-size 128 \
+    --save_path ./checkpoint/pruned-dataset/cifar100/42 \
+    --subset_rate 0.3  \
+    --target-probs-path ./checkpoint/cifar100/42/generated_mask/target_probs_win_10_ep200.npy \
+    --score-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
+    --mask-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
+    --c_d 4 \
+    --sample beta \
+    --method dual
 ```
 
 
