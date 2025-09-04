@@ -34,7 +34,7 @@ Run the following command, specifying the path to your saved dynamics and where 
 ```
 python importance_evaluation.py \
     --dynamics_path ./checkpoint/cifar100/42/npy/ \
-    --mask_path ./checkpoint/cifar100/42/generated_mask/
+    --save_path ./checkpoint/cifar100/42/generated_mask/
 ```
 This command generates two .npy files for each method:
 
