@@ -66,7 +66,7 @@ python train_subset.py \
     --score-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
     --mask-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
     --c_d 4 \
-    --sample beta \
+    --sample beta
 ```
 
 
