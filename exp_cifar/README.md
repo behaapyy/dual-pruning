@@ -62,12 +62,11 @@ python train_subset.py \
     --batch-size 128 \
     --save_path ./checkpoint/pruned-dataset/cifar100/42 \
     --subset_rate 0.3  \
-    --target-probs-path ./checkpoint/cifar100/42/generated_mask/target_probs_win_10_ep200.npy \
+    --target-probs-path ./checkpoint/cifar100/42/generated_mask/target_probs.npy \
     --score-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
     --mask-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
     --c_d 4 \
     --sample beta \
-    --method dual
 ```
 
 
