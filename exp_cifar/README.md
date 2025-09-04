@@ -33,7 +33,7 @@ Run the following command, specifying the path to your saved dynamics and where 
 
 ```
 python importance_evaluation.py \
-    --dataset cifar100
+    --dataset cifar100 \
     --dynamics_path ./checkpoint/cifar100/42/npy/ \
     --save_path ./checkpoint/cifar100/42/generated_mask/
 ```
