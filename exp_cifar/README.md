@@ -23,6 +23,7 @@ python train.py \
 
 After this step, the training dynamics will be saved to the path specified by `--save_path`.
 
+---
 
 ## Step 2: Evaluate Sample Importance
 
@@ -42,7 +43,7 @@ This command generates two .npy files for each method:
 - `XXX_mask.npy`: Contains the sorted sample indexes based on their importance scores.
 
 
-
+---
 
 ## Step3: Train Classifiers on the Pruned Dataset
 
