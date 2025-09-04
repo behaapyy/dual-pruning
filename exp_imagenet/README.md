@@ -8,7 +8,7 @@
 This step is necessary to collect training dynamics for future coreset selection. DUAL only collects training dynamics during early 60 epochs.
 
 ```javascript
-python train_imagenet.py --epochs 60 --lr 0.1 --scheduler cosine --task-name ICLR2023-ImageNet --base-dir /path/to/work-dir/imagenet/ --data-dir /dir/to/data/imagenet --network resnet34 --batch-size 256 --gpuid 0,1
+python train_imagenet.py --epochs 60 --lr 0.1 --scheduler cosine --task-name ImageNet --base-dir /path/to/work-dir/imagenet/ --data-dir /dir/to/data/imagenet --network resnet34 --batch-size 256 --gpuid 0,1
 ```
 
 ## Sample Importance Evaluation
