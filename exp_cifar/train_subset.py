@@ -293,3 +293,5 @@ def accuracy(output, target, topk=(1,)):
 
 if __name__ == '__main__':
     main() 
+
+# python train_subset.py     --data_path ./data     --dataset cifar100     --arch resnet18     --epochs 200     --learning_rate 0.5     --batch-size 128     --save_path ./checkpoint/pruned-dataset/cifar100/42     --subset_rate 0.1      --target-probs-path ./checkpoint/cifar100/42/generated_mask/target_probs.npy     --score-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy     --mask-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy  --gpu 3
