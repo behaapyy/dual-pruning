@@ -4,29 +4,79 @@
 - **`exp_cifar`** for CIFAR (10, 100) experiments  
 
 ---
-## Train Classifiers on the Entire Dataset
+# Step 1: Collect Training Dynamics
+
 This step is necessary to collect the training dynamics for subsequential coreset selection. DUAL only collects training dynamics during early 30 epochs.
 
-```javascript
-python train.py --data_path ./data --dataset cifar100 --arch resnet18 --epochs 200 --learning_rate 0.1 --batch-size 128 --dynamics --save_path ./checkpoint/all-dataset
+```
+python train.py \
+--data_path ./data \
+--dataset cifar100 \
+--arch resnet18 \
+--epochs 200 \
+--learning_rate 0.1 \
+--batch-size 128 \
+--maunalSeed 42 \
+--dynamics \
+--save_path ./checkpoint
 ```
 
-## Sample Importance Evaluation
-Using the training dynamics, you can get importance score of data points. 
+After this step, the training dynamics will be saved to the path specified by `--save_path`.
 
-```javascript
-python importance_evaluation.py --dynamics_path ./checkpoint/all-dataset/npy/ --mask_path ./checkpoint/generated_mask/
+
+## Step 2: Evaluate Sample Importance
+
+Once you have collected the training dynamics, you can compute an importance score for each data point. 
+
+Run the following command, specifying the path to your saved dynamics and where you want to store the results.
+
 ```
-After the computation, you will obtain two .npy files (XXX_score.npy, XXX_mask.npy) storing scores ordered by sample indexes and sorted sample indexes by respective importance scores.
-
-*For an aggressive pruning rate, setting a smaller batch size will lead to better performance. We use batch size of 64 for 80% pruning, and 32 for 90% pruning.
-
-## Train Classifiers on the Pruned Dataset
-```javascript
-python train_subset.py --data_path ./data --dataset cifar100 --arch resnet18 --epochs 200 --learning_rate 0.1 --batch-size 128 --save_path ./checkpoint/pruned-dataset --subset_rate 0.3  --target-probs-path ./generated/cifar10/42/target_probs_win_10_ep200.npy --score-path ./generated/cifar10/42/dual_mask_T30.npy --mask-path ./generated/cifar10/42/dual_mask_T30.npy --c_d 4 --sample beta --method dual
+python importance_evaluation.py \
+--dynamics_path ./checkpoint/cifar100/42/npy/ \
+--mask_path ./checkpoint/cifar100/42/generated_mask/
 ```
+This command generates two .npy files for each method:
+
+- `XXX_score.npy`: Contains the importance score for each data point, ordered by original sample index.
+
+- `XXX_mask.npy`: Contains the sorted sample indexes based on their importance scores.
+
+
+
+
+## Step3: Train Classifiers on the Pruned Dataset
+
+Now you can train a model using the pruned dataset, or coreset, that you created in the previous step. The `--subset_rate` parameter determines the percentage of data to keep. For example, a value of 0.3 keeps 30% of the dataset.
+
+Use the following command, making sure to update the file paths (`--score-path`, `--mask-path`, and `target-probs-path`) to the files generated in Step 2.
+
+```
+python train_subset.py \
+--data_path ./data \
+--dataset cifar100 \
+--arch resnet18 \
+--epochs 200 \
+--learning_rate 0.1 \
+--batch-size 128 \
+--save_path ./checkpoint/pruned-dataset/cifar100/42 \
+--subset_rate 0.3  \
+--target-probs-path ./checkpoint/cifar100/42/generated_mask/target_probs_win_10_ep200.npy \
+--score-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
+--mask-path ./checkpoint/cifar100/42/generated_mask/dual_mask_T30.npy \
+--c_d 4 \
+--sample beta \
+--method dual
+```
+
+
+For an aggressive pruning rate, setting a smaller batch size will lead to better performance. We use batch size of 64 for 80% pruning, and 32 for 90% pruning. Please refer to the experimental settings section in our paper.
+
+
+
 
 ---
+### Attribution
+
 This code is mostly build upon 
 ```bibtex
 @inproceedings{zhang2024TDDS,
