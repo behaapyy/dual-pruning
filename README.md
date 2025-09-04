@@ -36,6 +36,7 @@ maintaining SOTA performance*.
 
 ---
 ## 📚 Citation
+If you find our codes useful for your research, please cite our paper. 🤭
 ```bibtex
 @article{cho2025lightweight,
   title={Lightweight Dataset Pruning without Full Training via Example Difficulty and Prediction Uncertainty},
