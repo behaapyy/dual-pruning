@@ -8,7 +8,6 @@ from multiprocessing import Pool
 from PIL import Image
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.parameter import Parameter
 from scipy.stats import beta
 ########################################################################################################################
 #  Load Data
@@ -19,7 +18,6 @@ def load_cifar10_sub(args, target_probs=None, score=None, data_mask=None):
     Load CIFAR10 dataset with specified transformations and subset selection.
     """
     print('Loading CIFAR10... ', end='')
-    time_start = time.time()
     
     mean = [x / 255 for x in [125.3, 123.0, 113.9]]
     std = [x / 255 for x in [63.0, 62.1, 66.7]]
@@ -34,23 +32,19 @@ def load_cifar10_sub(args, target_probs=None, score=None, data_mask=None):
     train_data = dset.CIFAR10(args.data_path, train=True, transform=train_transform, download=True)
 
     if args.sample == 'random':
-        subset_mask = np.random.choice(50000, int(args.subset_rate* 50000), replace=False)
+        subset_mask = np.random.choice(50000, int(args.subset_rate * 50000), replace=False)
     elif args.sample == 'stratified':
         mis_num = int(args.mis_ratio * 50000)
-        easy_index = data_mask[:-mis_num]
-        if mis_num == 0:
-            easy_index = data_mask
-        score = score[data_mask]
-        score = score[easy_index] # Prune Hard samples
-        subset_mask = stratified_sampling(torch.tensor(score), int(args.subset_rate * 50000))
-        
+        easy_index = data_mask[mis_num:]
+        selected = stratified_sampling(torch.tensor(score[easy_index]), int(args.subset_rate * 50000))
+        subset_mask = easy_index[selected]
+
     elif args.sample == 'beta':
         subset_mask = beta_sampling(1-args.subset_rate, args.c_d, target_probs, data_mask, score)
     else:
         subset_mask = data_mask[-int(args.subset_rate * len(data_mask)):]
-        
+    
     data_set = torch.utils.data.Subset(train_data, subset_mask)
-
     train_loader = torch.utils.data.DataLoader(data_set, batch_size=args.batch_size, shuffle=True,
                                                num_workers=args.workers, pin_memory=True)
 
@@ -71,7 +65,6 @@ def load_cifar100_sub(args, target_probs=None, score=None, data_mask=None):
     Load CIFAR100 dataset with specified transformations and subset selection.
     """
     print('Loading CIFAR100... ', end='')
-    time_start = time.time()
     
     mean = [x / 255 for x in [129.3, 124.1, 112.4]]
     std = [x / 255 for x in [68.2, 65.4, 70.4]]
@@ -86,23 +79,18 @@ def load_cifar100_sub(args, target_probs=None, score=None, data_mask=None):
     train_data = dset.CIFAR100(args.data_path, train=True, transform=train_transform, download=True)
     
     if args.sample == 'random':
-        subset_mask = np.random.choice(50000, int(args.subset_rate* 50000), replace=False)
+        subset_mask = np.random.choice(50000, int(args.subset_rate * 50000), replace=False)
     elif args.sample == 'stratified':
         mis_num = int(args.mis_ratio * 50000)
-        easy_index = data_mask[:-mis_num]
-        if mis_num == 0:
-            easy_index = data_mask
-        score = score[data_mask]
-        score = score[easy_index] # Prune Hard samples
-        subset_mask = stratified_sampling(torch.tensor(score), int(args.subset_rate * 50000))
-        
+        easy_index = data_mask[mis_num:]
+        selected = stratified_sampling(torch.tensor(score[easy_index]), int(args.subset_rate * 50000))
+        subset_mask = easy_index[selected]
     elif args.sample == 'beta':
         subset_mask = beta_sampling(1-args.subset_rate, args.c_d, target_probs, data_mask, score)
     else:
         subset_mask = data_mask[-int(args.subset_rate * len(data_mask)):]
 
     data_set = torch.utils.data.Subset(train_data, subset_mask)
-    print(len(data_set))
     train_loader = torch.utils.data.DataLoader(data_set, batch_size=args.batch_size, shuffle=True,
                                                num_workers=args.workers, pin_memory=True)
 
@@ -174,10 +162,9 @@ def stratified_sampling(score, coreset_num):
 
     return selected_index
 
-def beta_sampling(prune_rate, c_d, target_probs, score, mask):
+def beta_sampling(prune_rate, c_d, target_probs, mask, score):
     data_length = target_probs.shape[-1]
-    target_probs = torch.tensor(target_probs)
-    pred_std = target_probs.std(axis=0)
+    target_probs = torch.tensor(target_probs)[:30] ### Use only first 30 epochs
     pred_mean = target_probs.mean(axis=0)
 
     subset_n = int((1-prune_rate) * data_length)
@@ -188,5 +175,5 @@ def beta_sampling(prune_rate, c_d, target_probs, score, mask):
     pdf_y = beta.pdf(pred_mean, y_a, y_b)
     joint_p = pdf_y * score
     remain_id = np.random.choice(data_length, p=joint_p/joint_p.sum(), size=subset_n, replace=False)
-
-    return remain_id, pred_std, pred_mean, pdf_y[np.argsort(pred_mean)], joint_p
+    np.save(f'{prune_rate}_{c_d}_dual_beta', remain_id)
+    return remain_id
