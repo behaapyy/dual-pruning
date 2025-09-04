@@ -33,19 +33,6 @@ parser.add_argument('--save_path', type=str, default='./ckpt', help='Folder to s
 parser.add_argument('--save', type=bool, default=False)
 parser.add_argument('--evaluate', dest='evaluate', action='store_true',default= False, help='evaluate model on validation set')
 
-# Pruning
-parser.add_argument('--cutoff_rate', default=0.1, type=float)
-parser.add_argument('--subset_rate', default=0.3, type=float, help='subset rate')
-
-# for d2
-parser.add_argument('--budget_mode', default='uniform', type=str, help='d2 inference')
-parser.add_argument('--n_neighbor', type=int, default=5)
-parser.add_argument('--gamma', type=float, default=0.1)
-parser.add_argument('--stratas', default=50)
-parser.add_argument('--graph-mode', default='sum')
-parser.add_argument('--graph-sampling-mode', default='weighted')
-parser.add_argument('--mis-ratio', default=0.2, type=float)
-
 # Acceleration
 parser.add_argument('--gpu', type=str, default='0')
 parser.add_argument('--workers', type=int, default=4, help='number of data loading workers (default: 2)')
@@ -53,35 +40,30 @@ parser.add_argument('--workers', type=int, default=4, help='number of data loadi
 # random seed
 parser.add_argument('--manualSeed', type=int, default=None, help='manual seed')
 
-# scoring params
-parser.add_argument('--src-folder', help='train dynamics source')
-
-# Coreset Method
-parser.add_argument('--target-probs-path', default='', type=str, help='for dual + beta')
-parser.add_argument('--score-path', default='', type=str)
-parser.add_argument('--mask-path', default='', type=str)
-parser.add_argument('--c_d', type=float, default=4, help='d_c for beta sampling')
-parser.add_argument('--key_T', type=int, default=30, help='score computation epoch')
-parser.add_argument('--key_J', type=int, default=10, help='sliding window size')
-parser.add_argument('--sample', type=str, default=None, help='sampling method: random, stratified, beta')
-parser.add_argument('--method', type=str, default='dual', help='methodology name')
+# Pruning
+parser.add_argument('--subset_rate', default=0.3, type=float, help='subset rate')
+parser.add_argument('--target-probs-path', required=True, type=str, help='For DUAL + Beta')
+parser.add_argument('--score-path', required=True, type=str, help='Path for score')
+parser.add_argument('--mask-path', required=True,type=str, help='Path for mask')
+parser.add_argument('--c_d', type=float, default=4, help='c_D for Beta sampling')
+parser.add_argument('--sample', type=str, default=None, choices=[None, 'random', 'stratified', 'beta'], help='sampling method')
+parser.add_argument('--mis-ratio', default=0.2, type=float, help='for CCS')
 
 args = parser.parse_args()
-args.use_cuda = True
 args.device = f'cuda:{args.gpu}'
 if args.manualSeed is None:
     args.manualSeed = random.randint(1, 10000)
 random.seed(args.manualSeed)
 torch.manual_seed(args.manualSeed)
-if args.use_cuda:
-    torch.cuda.manual_seed_all(args.manualSeed)
+torch.cuda.manual_seed_all(args.manualSeed)
 cudnn.benchmark = True
 
+args.method = args.mask_path.split('/')[-1].split('-')[0]
 wandb.init(project=f"{args.arch}_{args.dataset}_{args.arch}", 
            name = f"{args.method}_{args.sample}_{args.subset_rate}_bsz{args.batch_size}",
            config=args)
 
-def main(): # 
+def main(): 
     # Init logger
     print(args.save_path)
     if not os.path.isdir(args.save_path):
@@ -103,7 +85,7 @@ def main(): #
     print_log("Momentum: {}".format(args.momentum), log)
     print_log("Weight Decay: {}".format(args.decay), log)
 
-    target_probs = np.load(args.target_probs_path)[:1]
+    target_probs = np.load(args.target_probs_path)
     score = np.load(args.score_path)
     mask = np.load(args.mask_path)
     
@@ -122,6 +104,7 @@ def main(): #
         raise NotImplementedError("Unsupported dataset type")
     
     print_log("=> creating model '{}'".format(args.arch), log)
+    
     # Init model, criterion, and optimizer
     if args.arch in ['resnet18', 'resnet50']:
         net = resnet.__dict__[args.arch](num_class = args.num_classes)
@@ -154,7 +137,6 @@ def main(): #
     epoch_time = AverageMeter()
 
     for epoch in range(args.epochs):
-        # current_learning_rate = scheduler.get_last_lr()[0]
         current_learning_rate = scheduler.get_lr()[0]
         need_hour, need_mins, need_secs = convert_secs2time(epoch_time.avg * (args.epochs - epoch))
         need_time = '[Need: {:02d}:{:02d}:{:02d}]'.format(need_hour, need_mins, need_secs)
@@ -166,23 +148,20 @@ def main(): #
                                                                100 - recorder.max_accuracy(False)), log)
 
         # train for one epoch
-        ###
-        # print(len(train_loader))
-        train_acc, train_los = train(train_loader, args, net, criterion, optimizer, scheduler, epoch, log)
+        train_acc, train_loss = train(train_loader, args, net, criterion, optimizer, scheduler, epoch, log)
 
         # evaluate on validation set
-        val_acc, val_los = validate(test_loader, args, net, criterion, log)
+        val_acc, val_loss = validate(test_loader, args, net, criterion, log)
 
-        is_best = recorder.update(epoch, train_los, train_acc, val_los, val_acc)
+        is_best = recorder.update(epoch, train_loss, train_acc, val_loss, val_acc)
 
         wandb.log({
             "epoch": epoch,
             "train_accuracy": train_acc,
-            "train_loss": train_los,
+            "train_loss": train_loss,
             "val_accuracy": val_acc,
-            "val_loss": val_los,
+            "val_loss": val_loss,
             "learning_rate": scheduler.get_last_lr()[0],
-            # "learning_rate": scheduler.get_lr()[0],
             "best_acc": recorder.max_accuracy(False)
         })
         
@@ -198,7 +177,6 @@ def main(): #
         # measure elapsed time
         epoch_time.update(time.time() - start_time)
         start_time = time.time()
-        # recorder.plot_curve(os.path.join(args.save_path, 'curve.png'))
     log.close()
     wandb.finish()
 
@@ -209,21 +187,18 @@ def train(train_loader, args, model, criterion, optimizer, scheduler, epoch, log
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
+
     # switch to train mode
     model.train()
     end = time.time()
     
     for t, (input, target) in enumerate(train_loader):
-        if args.use_cuda:
-            y = target.to(args.device)
-            x = input.to(args.device)
+        x = input.to(args.device)
+        y = target.to(args.device)
         
-        input_var = torch.autograd.Variable(x)
-        target_var = torch.autograd.Variable(y)
         # compute output
-        output = model(input_var)
-        n = len(y)
-        loss = criterion(output, target_var)
+        output = model(x)
+        loss = criterion(output, y)
         
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, y, topk=(1, 5))
@@ -265,10 +240,9 @@ def validate(test_loader, args, model, criterion, log):
     # switch to evaluate mode
     model.eval()
     with torch.no_grad():
-        for i, (input, target) in enumerate(test_loader):
-            if args.use_cuda:
-                y = target.to(args.device)
-                x = input.to(args.device)
+        for input, target in test_loader:
+            x = input.to(args.device)
+            y = target.to(args.device)
 
             # compute output
             output = model(x)
