@@ -10,15 +10,15 @@ This step is necessary to collect the training dynamics for subsequential corese
 
 ```
 python train.py \
---data_path ./data \
---dataset cifar100 \
---arch resnet18 \
---epochs 200 \
---learning_rate 0.1 \
---batch-size 128 \
---maunalSeed 42 \
---dynamics \
---save_path ./checkpoint
+  --data_path ./data \
+  --dataset cifar100 \
+  --arch resnet18 \
+  --epochs 200 \
+  --learning_rate 0.1 \
+  --batch-size 128 \
+  --maunalSeed 42 \
+  --dynamics \
+  --save_path ./checkpoint
 ```
 
 After this step, the training dynamics will be saved to the path specified by `--save_path`.
