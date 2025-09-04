@@ -16,22 +16,21 @@ from scipy.special import softmax
 # Define and parse command line arguments
 parser = argparse.ArgumentParser(description='Calculate sample-wise importance',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--dynamics_path', type=str, default='./save/cifar10/42/npy/',
-                    help='Folder to save dynamics.')
-parser.add_argument('--mask_path', type=str, default='./generated_mask',
-                    help='Folder to save mask.')
-parser.add_argument('--trajectory_len', default=200, type=int,
-                    help='Length of the trajectory.')
+parser.add_argument('--data_path', type=str, default='./data', 
+                    help='Path to dataset')
+parser.add_argument('--dynamics_path', type=str, required=True,
+                    help='Folder to saved dynamics.')
 parser.add_argument('--window_size', default=10, type=int,
-                    help='Size of the sliding window.')
-parser.add_argument('--save_path', default='./generated', type=str,
-                    help='Size of the sliding window.')
+                    help='Size of the sliding window. (for Dyn-Unc & DUAL & TDDS)')
+parser.add_argument('--save_path', type=str, required=True,
+                    help='Folder to save mask.')
+parser.add_argument('--seed', default=42, type=int, 
+                    help='manual seed')
+parser.add_argument('--dataset', default='cifar10', type=str, choices=['cifar10', 'cifar100'], 
+                    help='dataset')
 
-parser.add_argument('--seed', default=42, type=int, help='manual seed')
-parser.add_argument('--dataset', default='cifar10', type=str, help='dataset (cifar10 / cifar100)')
 
 args = parser.parse_args()
-
 
 def forgetting(rearranged, targets):
     _, pred = rearranged.max(dim=-1)
@@ -50,7 +49,7 @@ def el2n(rearranged, targets):
     mask = torch.tensor(l2_error).sort()[1]
     return score, mask
 
-def aum(rearranged, targets_expanded, target_probs):
+def aum(rearranged):
     rearranged = F.softmax(rearranged, dim=2)
     for T in range(rearranged.shape[0]): # iter 200
         probs = rearranged[T]
@@ -77,7 +76,6 @@ def dynunc(preds, window_size=10, dim=0):
     for i in range(preds.size(dim) - window_size + 1):
         window = preds[i:i+window_size, :] 
         win_std = window.std(dim=0) * 10
-        win_mean = window.mean(dim=0)
         windows_score.append(win_std)
     score = torch.stack(windows_score).mean(dim=0)
     mask = np.argsort(score)
@@ -120,38 +118,36 @@ def dual(preds, window_size=10, dim=0):
     mask = np.argsort(score)
     return score, mask
 
-def rearrange(probs, indexes, save_dir):
+def rearrange(args, probs, indexes):
     probs_window_rere = []
-        # Reorganize probabilities according to indexes
+    # Reorganize probabilities according to indexes
     for i in range(probs.shape[0]):
         probs_window_re = torch.zeros_like(torch.tensor(probs[i]))
-        probs_re = probs_window_re.index_add(0, torch.tensor(indexes[i], dtype=int),
-                                                    torch.tensor(probs[i]))
+        probs_re = probs_window_re.index_add(0, torch.tensor(indexes[i], dtype=int), torch.tensor(probs[i]))
         probs_window_rere.append(probs_re)
 
     rearranged = torch.stack(probs_window_rere)
     target_probs = F.softmax(rearranged, dim=2)
     
     if args.dataset == 'cifar100':
-        train_data = datasets.CIFAR100('./data', train=True)
+        train_data = datasets.CIFAR100(args.data_path, download=True, train=True)
     elif args.dataset == 'cifar10':
-        train_data = datasets.CIFAR10('./data', train=True)
+        train_data = datasets.CIFAR10(args.data_path, download=True, train=True)
         
     targets = torch.tensor(train_data.targets)
     targets_expanded = targets.unsqueeze(0).unsqueeze(2).expand(probs.shape[0], -1, 1)
     target_probs = torch.gather(target_probs, 2, targets_expanded).squeeze()
     
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+    if not os.path.exists(args.save_path):
+        os.makedirs(args.save_path)
         
-    np.save(f"{save_dir}/rearranged_win_{args.window_size}_ep{args.trajectory_len}.npy", rearranged)
-    np.save(f"{save_dir}/target_probs_win_{args.window_size}_ep{args.trajectory_len}.npy", target_probs)
+    np.save(f"{args.save_path}/rearranged.npy", rearranged)
+    np.save(f"{args.save_path}/target_probs.npy", target_probs)
     
     return targets, targets_expanded, target_probs, rearranged
 
     
 if __name__ == '__main__':
-    # args.mask_path = os.path.join(args.mask_path, f'{args.seed}', 'generated_mask') # generated mask
     dynamics_path = args.dynamics_path
     probs = []
     losses = []
@@ -167,8 +163,7 @@ if __name__ == '__main__':
     indexes = np.array(indexes)
 
     print("Rearrange target probability")
-    args.save_path = os.path.join(args.save_path, args.dataset, f"{args.seed}")
-    targets, targets_expanded, target_probs, rearranged = rearrange(probs, indexes, args.save_path)
+    targets, targets_expanded, target_probs, rearranged = rearrange(args, probs, indexes)
     
     # DUAL
     print("DUAL score processing (T=30)")
@@ -190,7 +185,7 @@ if __name__ == '__main__':
     
     # AUM
     print("AUM score processing")
-    score, mask = aum(rearranged, targets_expanded, target_probs)
+    score, mask = aum(rearranged)
     np.save(os.path.join(args.save_path, 'aum_score.npy'), score)
     np.save(os.path.join(args.save_path, 'aum_mask.npy'), mask)
     
