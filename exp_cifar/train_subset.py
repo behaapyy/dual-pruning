@@ -58,7 +58,7 @@ parser.add_argument('--src-folder', help='train dynamics source')
 
 # Coreset Method
 parser.add_argument('--target-probs-path', default='./generated/cifar10/42/target_probs_win_10_ep200.npy', type=str, help='for dual + beta')
-parser.add_argument('--score-path', default='./generated/cifar10/42/dual_mask_T30.npy', type=str)
+parser.add_argument('--score-path', default='./generated/cifar10/42/dual_score_T30.npy', type=str)
 parser.add_argument('--mask-path', default='./generated/cifar10/42/dual_mask_T30.npy', type=str)
 parser.add_argument('--c_d', type=float, default=4, help='d_c for beta sampling')
 parser.add_argument('--key_T', type=int, default=30, help='score computation epoch')
@@ -103,7 +103,7 @@ def main(): #
     print_log("Momentum: {}".format(args.momentum), log)
     print_log("Weight Decay: {}".format(args.decay), log)
 
-    target_probs = np.load(args.target_probs_path)[:1]
+    target_probs = np.load(args.target_probs_path)
     score = np.load(args.score_path)
     mask = np.load(args.mask_path)
     
