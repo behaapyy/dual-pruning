@@ -14,11 +14,12 @@ python train_imagenet.py --epochs 60 --lr 0.1 --scheduler cosine --task-name ICL
 ## Sample Importance Evaluation
 Using the training dynamics, you can get importance score of data points. 
 
+Calculate DUAL, Dyn-Unc, TDDS score for each image
 ```javascript
-#Calculate DUAL, Dyn-Unc, TDDS score for each image
 python generate_importance_score_imagenet_dual.py --td-path /dir/to/td --save-path /path/to/save-dir
-
-#Calculate other baseline scores for each image
+```
+Calculate other baseline scores for each image
+```javascript
 python generate_importance_score_imagenet.py --data-dir /dir/to/data/imagenet --base-dir /path/to/work-dir/imagenet/ --task-name ImageNet-Score --data-score-path ./imagenet-data-score.pt
 ```
 
