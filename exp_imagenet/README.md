@@ -40,13 +40,10 @@ python train_imagenet.py --iterations 300000 --iterations-per-testing 5000 --lr 
 
 This code is mostly build upon 
 ```bibtex
-@misc{zheng2023coveragecentriccoresetselectionhigh,
-      title={Coverage-centric Coreset Selection for High Pruning Rates}, 
-      author={Haizhong Zheng and Rui Liu and Fan Lai and Atul Prakash},
-      year={2023},
-      eprint={2210.15809},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2210.15809}, 
+@article{zheng2022coverage,
+  title={Coverage-centric coreset selection for high pruning rates},
+  author={Zheng, Haizhong and Liu, Rui and Lai, Fan and Prakash, Atul},
+  journal={arXiv preprint arXiv:2210.15809},
+  year={2022}
 }
 ```
