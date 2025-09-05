@@ -175,5 +175,4 @@ def beta_sampling(prune_rate, c_d, target_probs, mask, score):
     pdf_y = beta.pdf(pred_mean, y_a, y_b)
     joint_p = pdf_y * score
     remain_id = np.random.choice(data_length, p=joint_p/joint_p.sum(), size=subset_n, replace=False)
-    np.save(f'{prune_rate}_{c_d}_dual_beta', remain_id)
     return remain_id
