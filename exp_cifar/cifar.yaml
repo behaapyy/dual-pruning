@@ -1,4 +1,4 @@
-name: tdds
+name: dual
 channels:
   - conda-forge
   - pytorch
