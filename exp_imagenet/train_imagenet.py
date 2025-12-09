@@ -219,9 +219,9 @@ if args.network == 'resnet50':
     print('Using resnet50.')
     model = torchvision.models.resnet50(pretrained=False, progress=True)
 
-model=torch.nn.parallel.DataParallel(model).to(device)
+model=torch.nn.parallel.DataParallel(model).cuda()
 # import pdb; pdb.set_trace()
-model = model.to(device)
+# model = model.to(device)
 # model=model.cuda()
 
 if args.iterations is None:
