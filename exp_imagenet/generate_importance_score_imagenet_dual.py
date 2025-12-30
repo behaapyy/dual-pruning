@@ -69,8 +69,9 @@ def dual(preds, window_size=10, dim=0):
     return score, mask
 
 
+total_result = {}
 for i, filename in enumerate(os.listdir(args.td_path)):
-    td_path = os.path.join(args.td_path, filename)
+    td_path = os.path.join(args.td_path, f'td-hard_pseudo_label-epoch-{i}.pickle')
     with open(td_path, 'rb') as f:
         td_data = pickle.load(f)
     
@@ -80,7 +81,6 @@ for i, filename in enumerate(os.listdir(args.td_path)):
         grouped_data[epoch]['idx'].append(entry['idx'])
         grouped_data[epoch]['output'].append(entry['output'])
     
-    total_result = {}
     for epoch, tensors in grouped_data.items():
         total_result[epoch] = {
             'idx': torch.cat(tensors['idx']),
@@ -107,22 +107,19 @@ for i in range(idxs.shape[0]): # epoch
 rearranged = torch.stack(probs_rearranged)
 rearranged = F.softmax(rearranged, dim=-1)
 
+
 labels = np.load(args.label_path)
 labels_t = torch.from_numpy(labels).long().to(rearranged.device)
-
 labels_expanded = labels_t.view(1, -1, 1).expand(rearranged.size(0), -1, 1)
-
 target_probs = torch.gather(rearranged, dim=2, index=labels_expanded).squeeze(-1)
-
 
 score, mask = dynunc(target_probs, window_size=10, dim=0)
 np.save(os.path.join(args.save_path, 'dynunc_score'), score)
 np.save(os.path.join(args.save_path, 'dynunc_mask'), mask)
 
-
-score, mask = dual(target_probs)
-np.save(os.path.join(args.save_path, 'dual_score'), score)
-np.save(os.path.join(args.save_path, 'dual_mask'), mask)
+score, mask = dual(target_probs[:60])
+np.save(os.path.join(args.save_path, 'dual_score_T60'), score)
+np.save(os.path.join(args.save_path, 'dual_mask_T60'), mask)
 
 score, mask = tdds(70, 10, rearranged)
 np.save(os.path.join(args.save_path, 'tdds_score'), score)
