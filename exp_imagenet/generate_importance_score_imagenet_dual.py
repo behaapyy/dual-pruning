@@ -5,7 +5,6 @@ import torch
 import torch.nn.functional as F
 from torchvision import datasets
 from numpy import linalg as LA
-from scipy.special import softmax
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -96,7 +95,6 @@ for epoch in total_result.keys():
     output = total_result[epoch]['output']
     idxs.append(idx)
     outputs.append(output)
-    print(outputs)
 
 idxs = torch.stack(idxs, dim=0)
 outputs = torch.stack(outputs, dim=0)
@@ -107,13 +105,15 @@ for i in range(idxs.shape[0]): # epoch
     probs_re = probs_re.index_add(0, idxs[i].type(torch.int64), torch.tensor(outputs[i]))
     probs_rearranged.append(probs_re)
 rearranged = torch.stack(probs_rearranged)
+rearranged = F.softmax(rearranged, dim=-1)
 
 labels = np.load(args.label_path)
-labels = torch.from_numpy(labels).long()          # [N]
-labels = labels.unsqueeze(0).unsqueeze(-1)        # [1, N, 1]
-labels = labels.expand(rearranged.size(0), -1, -1)  # [T, N, 1]
+labels_t = torch.from_numpy(labels).long().to(rearranged.device)
 
-target_probs = torch.gather(rearranged, dim=2, index=labels).squeeze(-1)
+labels_expanded = labels_t.view(1, -1, 1).expand(rearranged.size(0), -1, 1)
+
+target_probs = torch.gather(rearranged, dim=2, index=labels_expanded).squeeze(-1)
+
 
 score, mask = dynunc(target_probs, window_size=10, dim=0)
 np.save(os.path.join(args.save_path, 'dynunc_score'), score)
