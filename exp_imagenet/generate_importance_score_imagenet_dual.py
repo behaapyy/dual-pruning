@@ -15,6 +15,7 @@ parser = argparse.ArgumentParser()
 
 ######################### Data Setting #########################
 parser.add_argument('--td-path', type=str, default='', help='The dir path of the training dynamics saved')
+parser.add_argument('--task-name', type=str, default='', help='The name of td file')
 parser.add_argument('--label-path', type=str, default='', help='The path of gt labels')
 parser.add_argument('--save-path', type=str, default='', help='The save path of score and mask files')
 
@@ -71,7 +72,7 @@ def dual(preds, window_size=10, dim=0):
 
 total_result = {}
 for i, filename in enumerate(os.listdir(args.td_path)):
-    td_path = os.path.join(args.td_path, f'td-hard_pseudo_label-epoch-{i}.pickle')
+    td_path = os.path.join(args.td_path, f'td-{args.task_name}-epoch-{i}.pickle')
     with open(td_path, 'rb') as f:
         td_data = pickle.load(f)
     
