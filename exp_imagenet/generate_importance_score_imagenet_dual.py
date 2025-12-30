@@ -10,6 +10,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from collections import defaultdict
+import argparse
 
 parser = argparse.ArgumentParser()
 
@@ -69,7 +70,7 @@ def dual(preds, window_size=10, dim=0):
 
 
 for i, filename in enumerate(os.listdir(args.td_path)):
-    td_path = os.path.join(td_dir, filename)
+    td_path = os.path.join(args.td_path, filename)
     with open(td_path, 'rb') as f:
         td_data = pickle.load(f)
     
