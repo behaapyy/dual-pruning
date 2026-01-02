@@ -13,10 +13,10 @@ from numpy import linalg as LA
 parser = argparse.ArgumentParser()
 
 ######################### Data Setting #########################
-parser.add_argument('--data-dir', type=str, default='/storage/dataset/imagenet',
+parser.add_argument('--data-dir', type=str, default='/home/users/krafton_s/datasets/imagenet',
                     help='The dir path of the imagenet')
-parser.add_argument('--base-dir', type=str)
-parser.add_argument('--task-name', type=str)
+parser.add_argument('--base-dir', type=str, default='./data-model/imagenet')
+parser.add_argument('--task-name', type=str, )
 parser.add_argument('--data-score-path', type=str)
 
 args = parser.parse_args()
@@ -78,7 +78,7 @@ for batch_idx, (idx, (_, y)) in enumerate(trainloader):
     if batch_idx % 50 == 0:
         print(batch_idx)
 
-print(len(targets))
+
 data_importance = {}
 targets = torch.tensor(targets)
 data_size = targets.shape[0]
@@ -98,68 +98,14 @@ for i in range(1,11):
          td_data = pickle.load(f)
     EL2N(td_data['training_dynamics'], data_importance, max_epoch=11)
 
-total_index, total_target_probs = [], []
-for i in range(1,61):
+for i in range(1,91):
     td_path = f"{args.base_dir}/{args.task_name}/training-dynamics/td-{args.task_name}-epoch-{i}.pickle"
     print(td_path)
     with open(td_path, 'rb') as f:
          td_data = pickle.load(f)
-    epoch_index, epoch_target_probs = training_dynamics_metrics(td_data['training_dynamics'], data_importance)
-    total_index.append(epoch_index)
-    total_target_probs.append(epoch_target_probs)
-
-np.save(os.path.dirname(args.data_score_path)+'/index.npy', torch.stack(total_index))
-np.save(os.path.dirname(args.data_score_path)+'/target_probs.npy', torch.stack(total_target_probs))
+    training_dynamics_metrics(td_data['training_dynamics'], data_importance)
 
 print(f'Saving data score at {args.data_score_path}')
 with open(args.data_score_path, 'wb') as handle:
-    pickle.dump(args.data_importance, handle)
+    pickle.dump(args.data_score_path, handle)
     
-
-def dynunc(preds, window_size=10, dim=0):
-    windows_score = []
-    for i in range(preds.size(dim) - window_size + 1):
-        window = preds[i:i+window_size, :] 
-        win_std = window.std(dim=0) * 10
-        win_mean = window.mean(dim=0)
-        windows_score.append(win_std)
-    score = torch.stack(windows_score).mean(dim=0)
-    mask = np.argsort(score)
-    return score, mask
-
-def tdds(T, J, rearranged):
-    # Calculate TDDS
-    k = 0
-    moving_averages = []
-    # Iterate through the trajectory
-    while k < T - J + 1:
-        probs_window_kd = []
-        # Calculate KL divergence in one window
-        for j in range(J - 1):
-            log = torch.log(rearranged[j + 1] + 1e-8) - torch.log(rearranged[j] + 1e-8)
-            kd = torch.abs(torch.multiply(rearranged[j + 1], log.nan_to_num(0))).sum(axis=1)
-            probs_window_kd.append(kd)
-        window_average = torch.stack(probs_window_kd).mean(dim=0)
-        
-        window_diff = []
-        for ii in range(J - 1):
-            window_diff.append((probs_window_kd[ii] - window_average))
-        window_diff_norm = LA.norm(torch.stack(window_diff), axis=0) 
-        moving_averages.append(window_diff_norm * 0.9 * (1 - 0.9) ** (T - J - k))
-        k += 1
-        
-    moving_averages_sum = np.squeeze(sum(np.array(moving_averages), 0))
-    mask = moving_averages_sum.argsort()
-    score = moving_averages_sum
-    return score, mask
-
-def dual(preds, window_size=10, dim=0):
-    windows_score = []
-    for i in range(preds.size(dim) - window_size + 1):
-        window = preds[i:i+window_size, :] 
-        win_std = window.std(dim=0) * 10
-        win_mean = window.mean(dim=0)
-        windows_score.append((win_std * (1-win_mean)))
-    score = torch.stack(windows_score).mean(dim=0)
-    mask = np.argsort(score)
-    return score, mask
